@@ -77,11 +77,11 @@
 {% if species %}
 <div class="species-grid browse-grid">
   {% for sp in species %}
-  <a href="/species/{{ sp.id }}" class="species-card">
-    <div class="card-family">
+  <a href="/species/{{ sp.id }}" class="species-card browse-card">
+    <div class="bc-top">
       <a href="/family/{{ sp.family }}" class="fam-link" onclick="event.stopPropagation()">{{ sp.family }}</a>
+      <span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">{{ sp.status_code }}</span>
     </div>
-    <div class="card-butterfly">🦋</div>
     <h3 class="card-common">{{ sp.common_name or '—' }}</h3>
     <p class="card-sci"><em>{{ sp.scientific_name }}</em></p>
     <div class="card-meta">
@@ -92,9 +92,6 @@
       <span>⚖ {{ sp.dry_mass_mg|round(1) }} mg</span>
       {% endif %}
     </div>
-    <span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">
-      {{ sp.status_code }}
-    </span>
   </a>
   {% endfor %}
 </div>

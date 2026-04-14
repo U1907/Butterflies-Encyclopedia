@@ -570,6 +570,77 @@ def api_family(n):
     """, (n,)).fetchall()
     return jsonify([dict(r) for r in rows])
 
+# Wikipedia image
+
+import requests as _req, time as _time
+
+def _fetch_wiki_image(title):
+    """Hit Wikipedia pageimages API for a given title."""
+    try:
+        r = _req.get(
+            "https://en.wikipedia.org/w/api.php",
+            params={"action":"query","format":"json","prop":"pageimages",
+                    "titles":title,"pithumbsize":600},
+            headers={"User-Agent":"LepidopteraEncyclopedia/1.0"},
+            timeout=8
+        )
+        pages = r.json().get("query",{}).get("pages",{})
+        for pid, page in pages.items():
+            if pid != "-1" and "thumbnail" in page:
+                return page["thumbnail"]["source"]
+    except Exception:
+        pass
+    return None
+
+def _get_wiki_image_recursive(name):
+    """Strip trailing words until an image is found (buter2 logic)."""
+    words = name.split()
+    if not words:
+        return None
+    url = _fetch_wiki_image(" ".join(words))
+    if url:
+        return url
+    if len(words) > 1:
+        _time.sleep(0.15)
+        return _get_wiki_image_recursive(" ".join(words[:-1]))
+    return None
+
+@app.route("/api/wiki_image/<int:sid>")
+def api_wiki_image(sid):
+    """
+    Returns {"url": "..."} or {"url": null}.
+    Checks DB cache first; fetches from Wikipedia on miss and stores result.
+    """
+    db = get_db()
+
+    # Ensure cache column exists (safe no-op if already there)
+    db.execute(
+        "ALTER TABLE species ADD COLUMN wiki_image_url TEXT"
+        if not _col_exists(db, "species", "wiki_image_url") else "SELECT 1"
+    )
+
+    row = db.execute(
+        "SELECT wiki_image_url, scientific_name FROM species WHERE id=?", (sid,)
+    ).fetchone()
+    if row is None:
+        return jsonify({"url": None}), 404
+
+    # Cache hit — value already fetched before (even if it's the sentinel "NONE")
+    if row["wiki_image_url"] is not None:
+        url = None if row["wiki_image_url"] == "NONE" else row["wiki_image_url"]
+        return jsonify({"url": url})
+
+    # Cache miss — go fetch
+    img_url = _get_wiki_image_recursive(row["scientific_name"])
+    sentinel = img_url if img_url else "NONE"   # store "NONE" so we don't re-fetch
+    db.execute("UPDATE species SET wiki_image_url=? WHERE id=?", (sentinel, sid))
+    db.commit()
+    return jsonify({"url": img_url})
+
+def _col_exists(db, table, col):
+    cols = [r["name"] for r in db.execute(f"PRAGMA table_info({table})").fetchall()]
+    return col in cols
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

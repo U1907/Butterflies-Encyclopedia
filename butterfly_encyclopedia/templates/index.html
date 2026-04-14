@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Lepidoptera Encyclopedia — Home{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <p class="hero-eyebrow">A Digital Field Guide</p>
+    <h1 class="hero-title">
+      The Lepidoptera<br>
+      <em>Encyclopedia</em>
+    </h1>
+    <p class="hero-desc">
+      Explore <strong>{{ total }}</strong> species across <strong>{{ families }}</strong> families —
+      their wingspan, mass, development time, and conservation status, all in one place.
+    </p>
+    <div class="hero-cta">
+      <a href="/browse" class="btn btn-primary">Browse All Species</a>
+      <a href="/stats" class="btn btn-ghost">View Statistics</a>
+    </div>
+  </div>
+  <div class="hero-ornament" aria-hidden="true">
+    <span class="ornament-butterfly">🦋</span>
+  </div>
+</section>
+
+<!-- STAT CARDS -->
+<section class="stat-strip">
+  <div class="stat-card">
+    <span class="stat-num">{{ total }}</span>
+    <span class="stat-label">Species</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ families }}</span>
+    <span class="stat-label">Families</span>
+  </div>
+  <div class="stat-card accent-red">
+    <span class="stat-num">{{ threatened }}</span>
+    <span class="stat-label">Threatened</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ total - threatened }}</span>
+    <span class="stat-label">Least Concern / NT</span>
+  </div>
+</section>
+
+<!-- FEATURED SPECIES -->
+<section class="section featured-section">
+  <div class="section-header">
+    <h2 class="section-title">Featured Species</h2>
+    <a href="/browse" class="see-all">See all →</a>
+  </div>
+  <div class="species-grid">
+    {% for sp in featured %}
+    <a href="/species/{{ sp.id }}" class="species-card status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">
+      <div class="card-family">{{ sp.family }}</div>
+      <div class="card-butterfly">🦋</div>
+      <h3 class="card-common">{{ sp.common_name or sp.scientific_name }}</h3>
+      <p class="card-sci"><em>{{ sp.scientific_name }}</em></p>
+      <div class="card-meta">
+        {% if sp.span_min_mm and sp.span_max_mm %}
+        <span title="Wingspan">⟷ {{ sp.span_min_mm|int }}–{{ sp.span_max_mm|int }} mm</span>
+        {% endif %}
+        {% if sp.dry_mass_mg %}
+        <span title="Dry mass">⚖ {{ sp.dry_mass_mg|round(1) }} mg</span>
+        {% endif %}
+      </div>
+      <span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">
+        {{ sp.status_code }}
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- CONSERVATION OVERVIEW -->
+<section class="section conservation-section">
+  <div class="section-header">
+    <h2 class="section-title">Conservation at a Glance</h2>
+  </div>
+  <div class="conservation-desc">
+    <p>
+      The IUCN Red List categories used here range from <strong>Least Concern (LC)</strong> through
+      <strong>Critically Endangered (CR)</strong> to <strong>Regionally Extinct (RE)</strong>.
+      <strong>{{ threatened }}</strong> species in this dataset face significant threat.
+    </p>
+    <a href="/stats" class="btn btn-ghost" style="margin-top:1.2rem;">Explore the Data →</a>
+  </div>
+</section>
+{% endblock %}

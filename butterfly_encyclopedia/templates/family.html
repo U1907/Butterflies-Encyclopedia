@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}{{ fam.name }} — Lepidoptera{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="detail-hero">
+  <div class="detail-hero-left">
+    <a href="/browse" class="back-link">← Browse All Families</a>
+    <p class="detail-family">Family</p>
+    <h1 class="detail-title">{{ fam.name }}</h1>
+    <p class="detail-sci">{{ stats.total }} species in dataset</p>
+  </div>
+  <div class="detail-hero-right" aria-hidden="true">
+    <div class="detail-butterfly-display">🦋</div>
+  </div>
+</div>
+
+<!-- STAT STRIP -->
+<div class="stat-strip" style="margin-bottom:2.5rem;">
+  <div class="stat-card">
+    <span class="stat-num">{{ stats.total }}</span>
+    <span class="stat-label">Species</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ stats.avg_span or '—' }}</span>
+    <span class="stat-label">Avg Wingspan (mm)</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ stats.avg_mass or '—' }}</span>
+    <span class="stat-label">Avg Dry Mass (mg)</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ stats.avg_dev or '—' }}</span>
+    <span class="stat-label">Avg Dev Months</span>
+  </div>
+</div>
+
+<div class="detail-grid" style="margin-bottom:2.5rem;">
+
+  <!-- Morphology ranges -->
+  <div class="detail-panel">
+    <h2 class="panel-title">Morphology Range</h2>
+    <div class="data-rows">
+      <div class="data-row">
+        <span class="data-label">Min wingspan</span>
+        <span class="data-value mono">{{ stats.min_span or '—' }} mm</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Max wingspan</span>
+        <span class="data-value mono">{{ stats.max_span or '—' }} mm</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Avg wingspan</span>
+        <span class="data-value mono">{{ stats.avg_span or '—' }} mm</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Min dry mass</span>
+        <span class="data-value mono">{{ stats.min_mass or '—' }} mg</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Max dry mass</span>
+        <span class="data-value mono">{{ stats.max_mass or '—' }} mg</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conservation breakdown -->
+  <div class="detail-panel">
+    <h2 class="panel-title">Conservation Status</h2>
+    <div class="data-rows">
+      {% for s in status_breakdown %}
+      <div class="data-row">
+        <span class="status-badge status-{{ s.code | replace(' ','-') | replace('(','') | replace(')','') }}">{{ s.code }}</span>
+        <span class="data-value">{{ s.cnt }} species</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Span chart -->
+  <div class="detail-panel" style="grid-column:span 2;">
+    <h2 class="panel-title">Wingspan Distribution within {{ fam.name }}</h2>
+    <div style="height:220px;">
+      <canvas id="familySpanChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOP 5 tables -->
+<div class="stats-tables" style="margin-bottom:2.5rem;">
+  <div class="table-panel">
+    <h2 class="panel-title">Largest by Wingspan</h2>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Common Name</th><th>Scientific Name</th><th>Max Span</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for sp in top5_large %}
+        <tr>
+          <td class="mono">{{ loop.index }}</td>
+          <td><a href="/species/{{ sp.id }}" class="inline-link">{{ sp.common_name or '—' }}</a></td>
+          <td><em>{{ sp.scientific_name }}</em></td>
+          <td class="mono">{{ sp.span_max_mm }} mm</td>
+          <td><span class="status-badge status-{{ sp.status_code | replace(' ','-') | replace('(','') | replace(')','') }}">{{ sp.status_code }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="table-panel">
+    <h2 class="panel-title">Smallest by Wingspan</h2>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Common Name</th><th>Scientific Name</th><th>Min Span</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for sp in top5_small %}
+        <tr>
+          <td class="mono">{{ loop.index }}</td>
+          <td><a href="/species/{{ sp.id }}" class="inline-link">{{ sp.common_name or '—' }}</a></td>
+          <td><em>{{ sp.scientific_name }}</em></td>
+          <td class="mono">{{ sp.span_min_mm }} mm</td>
+          <td><span class="status-badge status-{{ sp.status_code | replace(' ','-') | replace('(','') | replace(')','') }}">{{ sp.status_code }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- FULL SPECIES TABLE -->
+<section class="section">
+  <div class="section-header">
+    <h2 class="section-title">All Species in {{ fam.name }}</h2>
+    <a href="/export/csv?family={{ fam.name }}" class="btn btn-ghost btn-sm">⬇ Export CSV</a>
+  </div>
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Common Name</th>
+          <th>Scientific Name</th>
+          <th>Status</th>
+          <th>Min Span (mm)</th>
+          <th>Max Span (mm)</th>
+          <th>Mass (mg)</th>
+          <th>Dev (mo)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sp in species_list %}
+        <tr>
+          <td><a href="/species/{{ sp.id }}" class="inline-link">{{ sp.common_name or '—' }}</a></td>
+          <td><em>{{ sp.scientific_name }}</em></td>
+          <td><span class="status-badge status-{{ sp.status_code | replace(' ','-') | replace('(','') | replace(')','') }}">{{ sp.status_code }}</span></td>
+          <td class="mono">{{ sp.span_min_mm or '—' }}</td>
+          <td class="mono">{{ sp.span_max_mm or '—' }}</td>
+          <td class="mono">{{ sp.dry_mass_mg or '—' }}</td>
+          <td class="mono">{{ sp.months_to_adult or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const spans = {{ species_list | map(attribute='span_max_mm') | reject('none') | list | tojson }};
+const labels = {{ species_list | map(attribute='common_name') | list | tojson }};
+const CREAM = '#f0e6d3', GOLD = '#c9a227', GREEN = '#3d7a5c';
+
+// Build buckets
+const buckets = {'<20':0,'20–40':0,'40–60':0,'60–80':0,'≥80':0};
+spans.forEach(v => {
+  if (v < 20) buckets['<20']++;
+  else if (v < 40) buckets['20–40']++;
+  else if (v < 60) buckets['40–60']++;
+  else if (v < 80) buckets['60–80']++;
+  else buckets['≥80']++;
+});
+new Chart(document.getElementById('familySpanChart'), {
+  type: 'bar',
+  data: {
+    labels: Object.keys(buckets),
+    datasets: [{
+      label: 'Species count',
+      data: Object.values(buckets),
+      backgroundColor: 'rgba(201,162,39,0.7)',
+      borderColor: GOLD, borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: CREAM }, grid: { color: 'rgba(255,255,255,0.05)' } },
+      y: { ticks: { color: CREAM }, grid: { color: 'rgba(255,255,255,0.07)' } }
+    }
+  }
+});
+</script>
+{% endblock %}

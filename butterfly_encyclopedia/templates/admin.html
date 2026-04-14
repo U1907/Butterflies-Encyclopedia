@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel — Lepidoptera{% endblock %}
+
+{% block content %}
+<div class="page-header admin-header">
+  <div>
+    <h1 class="page-title">Admin Panel</h1>
+    <p class="page-sub">{{ total }} species &mdash; page {{ page }} of {{ total_pages }}</p>
+  </div>
+  <a href="/admin/new" class="btn btn-primary">+ Add Species</a>
+</div>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-list">
+  {% for cat, msg in messages %}
+  <div class="flash flash-{{ cat }}">{{ msg }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- Search bar -->
+<form class="filter-bar" method="get" action="/admin" style="margin-bottom:1.5rem;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by name…" class="filter-input" style="max-width:320px;">
+  <button type="submit" class="btn btn-primary btn-sm">Search</button>
+  {% if q %}<a href="/admin" class="btn btn-ghost btn-sm">Clear</a>{% endif %}
+</form>
+
+<!-- Table -->
+<div class="table-scroll admin-table-wrap">
+  <table class="data-table admin-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Scientific Name</th>
+        <th>Common Name</th>
+        <th>Family</th>
+        <th>Status</th>
+        <th>Wingspan (max)</th>
+        <th>Mass (mg)</th>
+        <th>Dev (mo)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for sp in species %}
+    <tr>
+      <td class="mono">{{ sp.id }}</td>
+      <td><em>{{ sp.scientific_name }}</em></td>
+      <td>{{ sp.common_name or '—' }}</td>
+      <td>{{ sp.family }}</td>
+      <td><span class="status-badge status-{{ sp.status_code | replace(' ','-') | replace('(','') | replace(')','') }}">{{ sp.status_code }}</span></td>
+      <td class="mono">{{ sp.span_max_mm or '—' }}</td>
+      <td class="mono">{{ sp.dry_mass_mg or '—' }}</td>
+      <td class="mono">{{ sp.months_to_adult or '—' }}</td>
+      <td class="action-cell">
+        <a href="/species/{{ sp.id }}" class="action-btn view-btn" title="View">👁</a>
+        <a href="/admin/edit/{{ sp.id }}" class="action-btn edit-btn" title="Edit">✏️</a>
+        <form method="post" action="/admin/delete/{{ sp.id }}" style="display:inline"
+              onsubmit="return confirm('Delete {{ sp.scientific_name }}?')">
+          <button type="submit" class="action-btn del-btn" title="Delete">🗑</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+<div class="pagination">
+  {% if page > 1 %}
+  <a href="?q={{ q }}&page={{ page-1 }}" class="page-btn">← Prev</a>
+  {% endif %}
+  {% for p in range([1,page-2]|max, [total_pages+1,page+3]|min) %}
+  <a href="?q={{ q }}&page={{ p }}" class="page-btn {% if p==page %}active{% endif %}">{{ p }}</a>
+  {% endfor %}
+  {% if page < total_pages %}
+  <a href="?q={{ q }}&page={{ page+1 }}" class="page-btn">Next →</a>
+  {% endif %}
+</div>
+{% endblock %}

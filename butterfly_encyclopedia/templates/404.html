@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}404 — Page Not Found{% endblock %}
+{% block content %}
+<div class="error-page">
+  <div class="error-icon">🦋</div>
+  <h1 class="error-code">404</h1>
+  <h2 class="error-msg">Species Not Found</h2>
+  <p class="error-sub">This page has fluttered away. It may have been moved, deleted, or never existed.</p>
+  <div class="error-actions">
+    <a href="/" class="btn btn-primary">Go Home</a>
+    <a href="/browse" class="btn btn-ghost">Browse Species</a>
+  </div>
+</div>
+{% endblock %}

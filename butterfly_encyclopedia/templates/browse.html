@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Browse Species — Lepidoptera{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Browse Species</h1>
+  <p class="page-sub">{{ total }} result{{ 's' if total != 1 }} &mdash; page {{ page }} of {{ total_pages }}</p>
+</div>
+
+<!-- FILTER BAR -->
+<form class="filter-bar" method="get" action="/browse" id="browseForm">
+  <div class="filter-row-top">
+    <div class="filter-search">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by name…" class="filter-input">
+    </div>
+    <div class="filter-selects">
+      <select name="family" class="filter-select">
+        <option value="">All Families</option>
+        {% for f in families %}
+        <option value="{{ f.name }}" {% if f.name == family %}selected{% endif %}>{{ f.name }}</option>
+        {% endfor %}
+      </select>
+      <select name="status" class="filter-select">
+        <option value="">All Statuses</option>
+        {% for s in statuses %}
+        <option value="{{ s.code }}" {% if s.code == status %}selected{% endif %}>{{ s.code }} — {{ s.description }}</option>
+        {% endfor %}
+      </select>
+      <select name="sort" class="filter-select">
+        <option value="name"  {% if sort=='name'  %}selected{% endif %}>Sort: Common Name</option>
+        <option value="sci"   {% if sort=='sci'   %}selected{% endif %}>Sort: Scientific Name</option>
+        <option value="span"  {% if sort=='span'  %}selected{% endif %}>Sort: Wingspan ↓</option>
+        <option value="mass"  {% if sort=='mass'  %}selected{% endif %}>Sort: Mass ↓</option>
+        <option value="dev"   {% if sort=='dev'   %}selected{% endif %}>Sort: Dev Time ↓</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-row-ranges">
+    <div class="range-group">
+      <label class="range-label">Wingspan (mm)</label>
+      <div class="range-inputs">
+        <input class="range-input" type="number" name="span_min" placeholder="min"
+               value="{{ span_min if span_min is not none else '' }}" min="5" max="93" step="1">
+        <span class="range-sep">–</span>
+        <input class="range-input" type="number" name="span_max" placeholder="max"
+               value="{{ span_max if span_max is not none else '' }}" min="5" max="93" step="1">
+      </div>
+    </div>
+    <div class="range-group">
+      <label class="range-label">Dry Mass (mg)</label>
+      <div class="range-inputs">
+        <input class="range-input" type="number" name="mass_min" placeholder="min"
+               value="{{ mass_min if mass_min is not none else '' }}" min="0" max="1500" step="1">
+        <span class="range-sep">–</span>
+        <input class="range-input" type="number" name="mass_max" placeholder="max"
+               value="{{ mass_max if mass_max is not none else '' }}" min="0" max="1500" step="1">
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+      {% if q or family or status or span_min or span_max or mass_min or mass_max %}
+      <a href="/browse" class="btn btn-ghost btn-sm">Clear</a>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{% if total > 0 %}
+<div class="export-bar">
+  <span class="export-info">{{ total }} species match</span>
+  <a href="/export/csv?q={{ q }}&family={{ family }}&status={{ status }}{% if span_min %}&span_min={{ span_min }}{% endif %}{% if span_max %}&span_max={{ span_max }}{% endif %}{% if mass_min %}&mass_min={{ mass_min }}{% endif %}{% if mass_max %}&mass_max={{ mass_max }}{% endif %}"
+     class="btn btn-ghost btn-sm">⬇ Export CSV</a>
+</div>
+{% endif %}
+
+{% if species %}
+<div class="species-grid browse-grid">
+  {% for sp in species %}
+  <a href="/species/{{ sp.id }}" class="species-card">
+    <div class="card-family">
+      <a href="/family/{{ sp.family }}" class="fam-link" onclick="event.stopPropagation()">{{ sp.family }}</a>
+    </div>
+    <div class="card-butterfly">🦋</div>
+    <h3 class="card-common">{{ sp.common_name or '—' }}</h3>
+    <p class="card-sci"><em>{{ sp.scientific_name }}</em></p>
+    <div class="card-meta">
+      {% if sp.span_min_mm and sp.span_max_mm %}
+      <span>⟷ {{ sp.span_min_mm|int }}–{{ sp.span_max_mm|int }} mm</span>
+      {% endif %}
+      {% if sp.dry_mass_mg %}
+      <span>⚖ {{ sp.dry_mass_mg|round(1) }} mg</span>
+      {% endif %}
+    </div>
+    <span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">
+      {{ sp.status_code }}
+    </span>
+  </a>
+  {% endfor %}
+</div>
+
+<div class="pagination">
+  {% if page > 1 %}
+  <a href="?q={{ q }}&family={{ family }}&status={{ status }}&sort={{ sort }}&page={{ page-1 }}{% if span_min %}&span_min={{ span_min }}{% endif %}{% if span_max %}&span_max={{ span_max }}{% endif %}{% if mass_min %}&mass_min={{ mass_min }}{% endif %}{% if mass_max %}&mass_max={{ mass_max }}{% endif %}" class="page-btn">← Prev</a>
+  {% endif %}
+  {% for p in range([1, page-2]|max, [total_pages+1, page+3]|min) %}
+  <a href="?q={{ q }}&family={{ family }}&status={{ status }}&sort={{ sort }}&page={{ p }}{% if span_min %}&span_min={{ span_min }}{% endif %}{% if span_max %}&span_max={{ span_max }}{% endif %}{% if mass_min %}&mass_min={{ mass_min }}{% endif %}{% if mass_max %}&mass_max={{ mass_max }}{% endif %}"
+     class="page-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+  {% endfor %}
+  {% if page < total_pages %}
+  <a href="?q={{ q }}&family={{ family }}&status={{ status }}&sort={{ sort }}&page={{ page+1 }}{% if span_min %}&span_min={{ span_min }}{% endif %}{% if span_max %}&span_max={{ span_max }}{% endif %}{% if mass_min %}&mass_min={{ mass_min }}{% endif %}{% if mass_max %}&mass_max={{ mass_max }}{% endif %}" class="page-btn">Next →</a>
+  {% endif %}
+</div>
+{% else %}
+<div class="empty-state">
+  <span>🔍</span>
+  <p>No species matched your filters.</p>
+  <a href="/browse" class="btn btn-ghost">Reset Filters</a>
+</div>
+{% endif %}
+{% endblock %}

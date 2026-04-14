@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}500 — Server Error{% endblock %}
+{% block content %}
+<div class="error-page">
+  <div class="error-icon">🌿</div>
+  <h1 class="error-code">500</h1>
+  <h2 class="error-msg">Something Went Wrong</h2>
+  <p class="error-sub">An unexpected error occurred on the server. Please try again in a moment.</p>
+  <div class="error-actions">
+    <a href="/" class="btn btn-primary">Go Home</a>
+    <a href="/browse" class="btn btn-ghost">Browse Species</a>
+  </div>
+</div>
+{% endblock %}

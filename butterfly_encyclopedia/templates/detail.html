@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}{{ sp.common_name or sp.scientific_name }} — Lepidoptera{% endblock %}
+
+{% block content %}
+<div class="detail-hero">
+  <div class="detail-hero-left">
+    <a href="/browse" class="back-link">← Back to Browse</a>
+    <p class="detail-family"><a href="/family/{{ sp.family }}" class="fam-page-link">{{ sp.family }} →</a></p>
+    <h1 class="detail-title">{{ sp.common_name or sp.scientific_name }}</h1>
+    <p class="detail-sci"><em>{{ sp.scientific_name }}</em></p>
+    <span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }} badge-lg">
+      {{ sp.status_code }} — {{ sp.status_desc }}
+    </span>
+  </div>
+  <div class="detail-hero-right" aria-hidden="true">
+    <div class="detail-butterfly-display">🦋</div>
+  </div>
+</div>
+
+<!-- DATA PANELS -->
+<div class="detail-grid">
+
+  <div class="detail-panel">
+    <h2 class="panel-title">Morphology</h2>
+    <div class="data-rows">
+      <div class="data-row">
+        <span class="data-label">Wingspan (min)</span>
+        <span class="data-value">
+          {% if sp.span_min_mm %}{{ sp.span_min_mm|round(1) }} mm{% else %}<em>N/A</em>{% endif %}
+        </span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Wingspan (max)</span>
+        <span class="data-value">
+          {% if sp.span_max_mm %}{{ sp.span_max_mm|round(1) }} mm{% else %}<em>N/A</em>{% endif %}
+        </span>
+      </div>
+      {% if sp.span_min_mm and sp.span_max_mm %}
+      <div class="data-row">
+        <span class="data-label">Wingspan Range</span>
+        <span class="data-value">{{ (sp.span_max_mm - sp.span_min_mm)|round(1) }} mm spread</span>
+      </div>
+      {% endif %}
+      <div class="data-row">
+        <span class="data-label">Estimated Dry Mass</span>
+        <span class="data-value">
+          {% if sp.dry_mass_mg %}{{ sp.dry_mass_mg|round(2) }} mg{% else %}<em>N/A</em>{% endif %}
+        </span>
+      </div>
+    </div>
+    {% if sp.span_min_mm and sp.span_max_mm %}
+    <div class="wingspan-vis">
+      <div class="span-bar-wrap">
+        <div class="span-bar" style="width: {{ ((sp.span_max_mm / 95) * 100)|round(1) }}%"></div>
+      </div>
+      <span class="span-bar-label">{{ sp.span_max_mm|round(0)|int }} mm max (95 mm scale)</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="detail-panel">
+    <h2 class="panel-title">Taxonomy &amp; Status</h2>
+    <div class="data-rows">
+      <div class="data-row">
+        <span class="data-label">Family</span>
+        <span class="data-value">
+          <a href="/browse?family={{ sp.family }}" class="inline-link">{{ sp.family }}</a>
+        </span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Conservation Status</span>
+        <span class="data-value">{{ sp.status_desc }}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Red List Code</span>
+        <span class="data-value mono">{{ sp.status_code }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-panel">
+    <h2 class="panel-title">Development</h2>
+    <div class="data-rows">
+      <div class="data-row">
+        <span class="data-label">Months to Adulthood</span>
+        <span class="data-value">
+          {% if sp.months_to_adult %}{{ sp.months_to_adult }} month{{ 's' if sp.months_to_adult != 1 }}{% else %}<em>N/A</em>{% endif %}
+        </span>
+      </div>
+    </div>
+    {% if sp.months_to_adult %}
+    <div class="dev-timeline">
+      {% for i in range(1, 14) %}
+      <div class="dev-month {% if i <= sp.months_to_adult %}filled{% endif %}" title="Month {{ i }}"></div>
+      {% endfor %}
+      <span class="dev-label">{{ sp.months_to_adult }}/13 months</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="detail-panel">
+    <h2 class="panel-title">Family Context</h2>
+    <div class="data-rows">
+      <div class="data-row">
+        <span class="data-label">Species in family</span>
+        <span class="data-value">{{ fam_stats.cnt }}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Avg. wingspan (family)</span>
+        <span class="data-value">
+          {% if fam_stats.avg_span %}{{ fam_stats.avg_span|round(1) }} mm{% else %}<em>N/A</em>{% endif %}
+        </span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Avg. mass (family)</span>
+        <span class="data-value">
+          {% if fam_stats.avg_mass %}{{ fam_stats.avg_mass|round(1) }} mg{% else %}<em>N/A</em>{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SIBLINGS -->
+{% if siblings %}
+<section class="section siblings-section">
+  <div class="section-header">
+    <h2 class="section-title">More from {{ sp.family }}</h2>
+    <a href="/browse?family={{ sp.family }}" class="see-all">See all →</a>
+  </div>
+  <div class="sibling-list">
+    {% for s in siblings %}
+    <a href="/species/{{ s.id }}" class="sibling-card">
+      <span class="sib-icon">🦋</span>
+      <div class="sib-info">
+        <span class="sib-common">{{ s.common_name or '—' }}</span>
+        <span class="sib-sci"><em>{{ s.scientific_name }}</em></span>
+      </div>
+      <span class="status-badge status-{{ s.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">{{ s.status_code }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

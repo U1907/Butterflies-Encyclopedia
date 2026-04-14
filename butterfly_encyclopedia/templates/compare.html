@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Compare Species — Lepidoptera{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Compare Species</h1>
+  <p class="page-sub">Select two species to compare their traits side-by-side</p>
+</div>
+
+<!-- SELECTOR FORM -->
+<form class="compare-selector" method="get" action="/compare">
+  <div class="compare-pick">
+    <label class="pick-label">Species A</label>
+    <select name="a" class="filter-select compare-select">
+      <option value="">— choose —</option>
+      {% for s in all_species %}
+      <option value="{{ s.id }}" {% if sp1 and s.id == sp1.id %}selected{% endif %}>
+        {{ s.common_name or s.scientific_name }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="compare-vs">VS</div>
+  <div class="compare-pick">
+    <label class="pick-label">Species B</label>
+    <select name="b" class="filter-select compare-select">
+      <option value="">— choose —</option>
+      {% for s in all_species %}
+      <option value="{{ s.id }}" {% if sp2 and s.id == sp2.id %}selected{% endif %}>
+        {{ s.common_name or s.scientific_name }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Compare</button>
+</form>
+
+{% if sp1 and sp2 %}
+<!-- COMPARISON TABLE -->
+<div class="compare-arena">
+
+  <!-- Headers -->
+  <div class="compare-header">
+    <div class="compare-attr-col"></div>
+    <div class="compare-species-col">
+      <span class="compare-butterfly">🦋</span>
+      <h2 class="compare-name">{{ sp1.common_name or sp1.scientific_name }}</h2>
+      <em class="compare-sci">{{ sp1.scientific_name }}</em>
+      <span class="status-badge status-{{ sp1.status_code | replace(' ','-') | replace('(','') | replace(')','') }} badge-lg">{{ sp1.status_code }}</span>
+    </div>
+    <div class="compare-species-col">
+      <span class="compare-butterfly">🦋</span>
+      <h2 class="compare-name">{{ sp2.common_name or sp2.scientific_name }}</h2>
+      <em class="compare-sci">{{ sp2.scientific_name }}</em>
+      <span class="status-badge status-{{ sp2.status_code | replace(' ','-') | replace('(','') | replace(')','') }} badge-lg">{{ sp2.status_code }}</span>
+    </div>
+  </div>
+
+  <!-- Rows -->
+  {% set rows = [
+    ("Family",          sp1.family,       sp2.family,       None,    None),
+    ("Conservation",    sp1.status_desc,  sp2.status_desc,  None,    None),
+    ("Min Wingspan",    sp1.span_min_mm,  sp2.span_min_mm,  "mm",    True),
+    ("Max Wingspan",    sp1.span_max_mm,  sp2.span_max_mm,  "mm",    True),
+    ("Dry Mass",        sp1.dry_mass_mg,  sp2.dry_mass_mg,  "mg",    True),
+    ("Months to Adult", sp1.months_to_adult, sp2.months_to_adult, "mo", True),
+  ] %}
+
+  {% for label, v1, v2, unit, numeric in rows %}
+  <div class="compare-row">
+    <div class="compare-attr">{{ label }}</div>
+    <div class="compare-cell {% if numeric and v1 and v2 %}{% if v1 > v2 %}winner{% elif v1 < v2 %}loser{% endif %}{% endif %}">
+      {% if v1 %}{{ v1|round(1) if numeric and v1 is number else v1 }}{% if unit %} {{ unit }}{% endif %}{% else %}<em>N/A</em>{% endif %}
+    </div>
+    <div class="compare-cell {% if numeric and v1 and v2 %}{% if v2 > v1 %}winner{% elif v2 < v1 %}loser{% endif %}{% endif %}">
+      {% if v2 %}{{ v2|round(1) if numeric and v2 is number else v2 }}{% if unit %} {{ unit }}{% endif %}{% else %}<em>N/A</em>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- Visual wingspan bar -->
+  {% if sp1.span_max_mm and sp2.span_max_mm %}
+  {% set max_span = [sp1.span_max_mm, sp2.span_max_mm]|max %}
+  <div class="compare-row">
+    <div class="compare-attr">Wingspan Visual</div>
+    <div class="compare-cell">
+      <div class="compare-bar-wrap">
+        <div class="compare-bar" style="width:{{ ((sp1.span_max_mm / max_span) * 100)|round(1) }}%"></div>
+      </div>
+      <span class="compare-bar-label">{{ sp1.span_max_mm|round(0)|int }} mm</span>
+    </div>
+    <div class="compare-cell">
+      <div class="compare-bar-wrap">
+        <div class="compare-bar" style="width:{{ ((sp2.span_max_mm / max_span) * 100)|round(1) }}%"></div>
+      </div>
+      <span class="compare-bar-label">{{ sp2.span_max_mm|round(0)|int }} mm</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Detail links -->
+  <div class="compare-row compare-actions-row">
+    <div class="compare-attr"></div>
+    <div class="compare-cell"><a href="/species/{{ sp1.id }}" class="btn btn-ghost btn-sm">Full Profile →</a></div>
+    <div class="compare-cell"><a href="/species/{{ sp2.id }}" class="btn btn-ghost btn-sm">Full Profile →</a></div>
+  </div>
+
+</div>
+{% elif sp1 or sp2 %}
+<p class="compare-hint">Select a second species to start the comparison.</p>
+{% else %}
+<div class="compare-placeholder">
+  <span>🦋 🆚 🦋</span>
+  <p>Choose two species above to compare their morphology and conservation status.</p>
+</div>
+{% endif %}
+{% endblock %}

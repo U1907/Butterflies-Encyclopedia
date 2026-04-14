@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}SQL Queries — Lepidoptera{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">SQL Query Showcase</h1>
+  <p class="page-sub">10 live queries demonstrating JOINs, subqueries, GROUP BY, window functions, and CTEs</p>
+</div>
+
+<div class="queries-layout">
+
+  <!-- Sidebar: query list -->
+  <nav class="query-nav">
+    {% for q in queries %}
+    <a href="/queries?q={{ q.id }}"
+       class="query-nav-item {% if q.id == active.id %}active{% endif %}">
+      <span class="q-num">{{ q.id }}</span>
+      <span class="q-title">{{ q.title }}</span>
+    </a>
+    {% endfor %}
+  </nav>
+
+  <!-- Main panel -->
+  <div class="query-main">
+
+    <div class="query-header">
+      <h2 class="query-title">{{ active.title }}</h2>
+      <p class="query-desc">{{ active.description }}</p>
+      <span class="query-concept">💡 {{ active.concept }}</span>
+    </div>
+
+    <!-- SQL block -->
+    <div class="sql-block">
+      <div class="sql-toolbar">
+        <span class="sql-label">SQL</span>
+        <button class="copy-btn" onclick="copySQL()">Copy</button>
+      </div>
+      <pre id="sqlCode" class="sql-code">{{ active.sql }}</pre>
+    </div>
+
+    <!-- Results -->
+    <div class="results-section">
+      <h3 class="results-title">
+        Results
+        {% if rows %}<span class="results-count">{{ rows|length }} row{{ 's' if rows|length != 1 }}</span>{% endif %}
+      </h3>
+
+      {% if error %}
+      <div class="query-error">⚠ {{ error }}</div>
+      {% elif rows %}
+      <div class="table-scroll">
+        <table class="data-table results-table">
+          <thead>
+            <tr>
+              {% for col in cols %}
+              <th>{{ col }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            <tr>
+              {% for col in cols %}
+              <td class="{% if row[col] is number %}mono{% endif %}">
+                {% if row[col] is none %}<em class="null-val">NULL</em>
+                {% elif row[col] is number %}{{ row[col]|round(2) if row[col] % 1 != 0 else row[col]|int }}
+                {% else %}{{ row[col] }}
+                {% endif %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="empty-msg">No rows returned.</p>
+      {% endif %}
+    </div>
+
+    <!-- Nav arrows -->
+    <div class="query-pager">
+      {% if active.id > 1 %}
+      <a href="/queries?q={{ active.id - 1 }}" class="btn btn-ghost btn-sm">← Previous</a>
+      {% endif %}
+      {% if active.id < queries|length %}
+      <a href="/queries?q={{ active.id + 1 }}" class="btn btn-primary btn-sm">Next →</a>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copySQL() {
+  const code = document.getElementById('sqlCode').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1800);
+  });
+}
+</script>
+{% endblock %}

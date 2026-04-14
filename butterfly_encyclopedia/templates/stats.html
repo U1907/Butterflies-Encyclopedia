@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Statistics — Lepidoptera{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Data &amp; Statistics</h1>
+  <p class="page-sub">Visual analysis of the Lepidoptera dataset</p>
+</div>
+
+<div class="stats-grid">
+
+  <!-- STATUS PIE -->
+  <div class="chart-panel wide">
+    <h2 class="panel-title">Conservation Status Distribution</h2>
+    <div class="chart-wrap">
+      <canvas id="statusChart"></canvas>
+    </div>
+  </div>
+
+  <!-- FAMILY BAR -->
+  <div class="chart-panel wide">
+    <h2 class="panel-title">Species per Family</h2>
+    <div class="chart-wrap tall">
+      <canvas id="familyChart"></canvas>
+    </div>
+  </div>
+
+  <!-- WINGSPAN DIST -->
+  <div class="chart-panel">
+    <h2 class="panel-title">Wingspan Distribution</h2>
+    <div class="chart-wrap">
+      <canvas id="spanChart"></canvas>
+    </div>
+  </div>
+
+  <!-- MASS DIST -->
+  <div class="chart-panel">
+    <h2 class="panel-title">Dry Mass Distribution</h2>
+    <div class="chart-wrap">
+      <canvas id="massChart"></canvas>
+    </div>
+  </div>
+
+  <!-- DEV TIME -->
+  <div class="chart-panel wide">
+    <h2 class="panel-title">Development Time Distribution (months to adult)</h2>
+    <div class="chart-wrap">
+      <canvas id="devChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOP TABLES -->
+<div class="stats-tables">
+  <div class="table-panel">
+    <h2 class="panel-title">Largest by Wingspan</h2>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Common Name</th><th>Scientific Name</th><th>Family</th><th>Max Span</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for sp in top_large %}
+      <tr>
+        <td class="mono">{{ loop.index }}</td>
+        <td>{{ sp.common_name or '—' }}</td>
+        <td><em>{{ sp.scientific_name }}</em></td>
+        <td>{{ sp.family }}</td>
+        <td class="mono">{{ sp.span_max_mm|round(1) }} mm</td>
+        <td><span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">{{ sp.status_code }}</span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-panel">
+    <h2 class="panel-title">Smallest by Wingspan</h2>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Common Name</th><th>Scientific Name</th><th>Family</th><th>Min Span</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for sp in top_small %}
+      <tr>
+        <td class="mono">{{ loop.index }}</td>
+        <td>{{ sp.common_name or '—' }}</td>
+        <td><em>{{ sp.scientific_name }}</em></td>
+        <td>{{ sp.family }}</td>
+        <td class="mono">{{ sp.span_min_mm|round(1) }} mm</td>
+        <td><span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">{{ sp.status_code }}</span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const GOLD = '#c9a227', GREEN = '#3d7a5c', RED = '#c0392b',
+      AMBER = '#e67e22', TEAL = '#1abc9c', SLATE = '#6c7a7d',
+      CREAM = '#f0e6d3';
+
+const chartDefaults = {
+  color: CREAM,
+  plugins: { legend: { labels: { color: CREAM, font: { family: 'Cormorant Garamond', size: 13 } } } },
+  scales: {
+    x: { ticks: { color: CREAM }, grid: { color: 'rgba(255,255,255,0.05)' } },
+    y: { ticks: { color: CREAM }, grid: { color: 'rgba(255,255,255,0.07)' } }
+  }
+};
+
+// STATUS PIE
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: {{ by_status | map(attribute='description') | list | tojson }},
+    datasets: [{
+      data: {{ by_status | map(attribute='cnt') | list | tojson }},
+      backgroundColor: ['#3d7a5c','#1abc9c','#6c7a7d','#95a5a6','#e67e22','#c0392b','#8e44ad','#2c3e50','#e74c3c'],
+      borderColor: '#0e1c14', borderWidth: 2
+    }]
+  },
+  options: { plugins: { legend: { labels: { color: CREAM, font: { family: 'Cormorant Garamond', size: 13 } } } } }
+});
+
+// FAMILY BAR
+new Chart(document.getElementById('familyChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ by_family | map(attribute='name') | list | tojson }},
+    datasets: [{
+      label: 'Species count',
+      data: {{ by_family | map(attribute='cnt') | list | tojson }},
+      backgroundColor: 'rgba(201,162,39,0.75)',
+      borderColor: GOLD, borderWidth: 1
+    }]
+  },
+  options: { indexAxis: 'y', ...chartDefaults,
+    plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+});
+
+// WINGSPAN DIST
+new Chart(document.getElementById('spanChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ span_dist | map(attribute='bucket') | list | tojson }},
+    datasets: [{
+      label: 'Species',
+      data: {{ span_dist | map(attribute='cnt') | list | tojson }},
+      backgroundColor: 'rgba(61,122,92,0.8)',
+      borderColor: GREEN, borderWidth: 1
+    }]
+  },
+  options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+});
+
+// MASS DIST
+new Chart(document.getElementById('massChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ mass_dist | map(attribute='bucket') | list | tojson }},
+    datasets: [{
+      label: 'Species',
+      data: {{ mass_dist | map(attribute='cnt') | list | tojson }},
+      backgroundColor: 'rgba(230,126,34,0.8)',
+      borderColor: AMBER, borderWidth: 1
+    }]
+  },
+  options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+});
+
+// DEV TIME
+new Chart(document.getElementById('devChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ dev_dist | map(attribute='months') | list | tojson }},
+    datasets: [{
+      label: 'Species',
+      data: {{ dev_dist | map(attribute='cnt') | list | tojson }},
+      backgroundColor: 'rgba(26,188,156,0.8)',
+      borderColor: TEAL, borderWidth: 1
+    }]
+  },
+  options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, legend: { display: false } },
+    scales: { ...chartDefaults.scales,
+      x: { ...chartDefaults.scales.x, title: { display: true, text: 'Months', color: CREAM } },
+      y: { ...chartDefaults.scales.y, title: { display: true, text: 'Species count', color: CREAM } }
+    }
+  }
+});
+</script>
+{% endblock %}

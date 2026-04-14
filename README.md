@@ -1,2 +1,0 @@
-# Butterflies-Encyclopedia
-DBMS project

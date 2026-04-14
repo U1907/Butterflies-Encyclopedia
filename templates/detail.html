@@ -2,28 +2,26 @@
 {% block title %}{{ sp.common_name or sp.scientific_name }} — Lepidoptera{% endblock %}
 
 {% block content %}
-<div class="detail-hero stable-hero">
+<div class="detail-hero stable-hero" style="display: flex; justify-content: space-between; align-items: flex-start;">
   <div class="detail-hero-left">
     <a href="/browse" class="back-link">← Back to Browse</a>
     <p class="detail-family"><a href="/family/{{ sp.family }}" class="fam-page-link">{{ sp.family }} →</a></p>
-    <div class="hero-name-row">
-      <div class="hero-names">
-        <h1 class="detail-title">{{ sp.common_name or sp.scientific_name }}</h1>
-        <p class="detail-sci"><em>{{ sp.scientific_name }}</em></p>
-        <span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }} badge-lg">
-          {{ sp.status_code }} — {{ sp.status_desc }}
-        </span>
-      </div>
-      <div class="detail-hero-right" aria-hidden="true">
-        <div class="detail-butterfly-display" id="heroImgWrap">
-          <span class="hero-img-spinner">🦋</span>
-        </div>
-      </div>
+    <div class="hero-names">
+      <h1 class="detail-title">{{ sp.common_name or sp.scientific_name }}</h1>
+      <p class="detail-sci"><em>{{ sp.scientific_name }}</em></p>
+      <span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }} badge-lg">
+        {{ sp.status_code }} — {{ sp.status_desc }}
+      </span>
+    </div>
+  </div>
+  
+  <div class="detail-hero-right" aria-hidden="true" style="margin-left: auto;">
+    <div class="detail-butterfly-display" id="heroImgWrap">
+      <span class="hero-img-spinner">🦋</span>
     </div>
   </div>
 </div>
 
-<!-- DATA PANELS -->
 <div class="detail-grid">
 
   <div class="detail-panel">
@@ -128,7 +126,6 @@
 
 </div>
 
-<!-- SIBLINGS -->
 {% if siblings %}
 <section class="section siblings-section">
   <div class="section-header">
@@ -162,7 +159,7 @@
       if (data.url) {
         wrap.innerHTML =
           `<img src="${data.url}" alt="{{ sp.common_name or sp.scientific_name }}"
-                class="detail-wiki-img" loading="lazy">`;
+                class="detail-wiki-img" loading="lazy" style="max-width: 100%; height: auto; border-radius: 8px;">`;
       }
       // if no image found, the 🦋 spinner stays
     })

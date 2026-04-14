@@ -194,8 +194,13 @@ body {
   transition: border-color .2s;
 }
 .nav-search-wrap input:focus { border-color: var(--gold); }
+
+/* ── Search Dropdown (Stabilized) ────────────────────────── */
 .search-dropdown {
-  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  position: absolute; top: calc(100% + 6px); right: 0;
+  width: 420px; /* Force wide width to prevent wrapping */
+  max-height: 400px;
+  overflow-y: auto;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -204,12 +209,36 @@ body {
 }
 .search-dropdown.open { display: block; }
 .search-item {
-  display: flex; align-items: center; gap: .6rem;
-  padding: .5rem .8rem; text-decoration: none; color: var(--cream);
+  display: flex; align-items: center; gap: .8rem;
+  padding: .6rem 1rem; text-decoration: none; color: var(--cream);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
   transition: background .15s;
 }
+.search-item:last-child { border-bottom: none; }
 .search-item:hover { background: rgba(201,162,39,0.1); }
-.search-item .sci { color: var(--muted); font-size: .85rem; font-style: italic; }
+
+.search-item-icon { flex-shrink: 0; }
+.search-item-text {
+  flex: 1; min-width: 0; /* Crucial for text-overflow to work inside flexbox */
+  display: flex; flex-direction: column;
+}
+.search-item-name {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: .95rem; line-height: 1.3;
+}
+.search-item .sci { 
+  color: var(--muted); font-size: .85rem; font-style: italic; 
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.search-item .status-badge { flex-shrink: 0; }
+
+.search-item mark {
+  background-color: var(--gold);
+  color: var(--bg);
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 600;
+}
 
 /* ── Main / Footer ────────────────────────────────────────── */
 .main-content {

@@ -566,7 +566,12 @@ body {
   padding: 1.5rem;
 }
 .chart-panel.wide { grid-column: 1 / -1; }
-.chart-wrap { position: relative; height: 280px; }
+.chart-wrap {
+  position: relative;
+  height: 280px;
+  width: 100%;
+  display: block;
+}
 .chart-wrap.tall { height: 420px; }
 
 .stats-tables {

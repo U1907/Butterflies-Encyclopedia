@@ -1,0 +1,11 @@
+# Render Python Flask configuration
+type: web
+name: butterfly-encyclopedia
+runtime: python
+buildCommand: "pip install -r requirements.txt"
+startCommand: "gunicorn app:app"
+env:
+  - key: FLASK_ENV
+    value: production
+  - key: PORT
+    value: 10000

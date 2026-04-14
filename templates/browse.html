@@ -7,7 +7,6 @@
   <p class="page-sub">{{ total }} result{{ 's' if total != 1 }} &mdash; page {{ page }} of {{ total_pages }}</p>
 </div>
 
-<!-- FILTER BAR -->
 <form class="filter-bar" method="get" action="/browse" id="browseForm">
   <div class="filter-row-top">
     <div class="filter-search">
@@ -75,28 +74,43 @@
 {% endif %}
 
 {% if species %}
-<div class="species-grid browse-grid">
-  {% for sp in species %}
-  <a href="/species/{{ sp.id }}" class="species-card">
-    <div class="card-family">
-      <a href="/family/{{ sp.family }}" class="fam-link" onclick="event.stopPropagation()">{{ sp.family }}</a>
-    </div>
-    <div class="card-butterfly">🦋</div>
-    <h3 class="card-common">{{ sp.common_name or '—' }}</h3>
-    <p class="card-sci"><em>{{ sp.scientific_name }}</em></p>
-    <div class="card-meta">
-      {% if sp.span_min_mm and sp.span_max_mm %}
-      <span>⟷ {{ sp.span_min_mm|int }}–{{ sp.span_max_mm|int }} mm</span>
-      {% endif %}
-      {% if sp.dry_mass_mg %}
-      <span>⚖ {{ sp.dry_mass_mg|round(1) }} mg</span>
-      {% endif %}
-    </div>
-    <span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">
-      {{ sp.status_code }}
-    </span>
-  </a>
-  {% endfor %}
+<div class="table-scroll" style="margin-top: 2rem;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Family</th>
+        <th>Status</th>
+        <th>Common Name</th>
+        <th>Scientific Name</th>
+        <th>Wingspan (mm)</th>
+        <th>Mass (mg)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sp in species %}
+      <tr>
+        <td><a href="/family/{{ sp.family }}" class="inline-link">{{ sp.family }}</a></td>
+        <td><span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">{{ sp.status_code }}</span></td>
+        <td><a href="/species/{{ sp.id }}" class="inline-link" style="font-weight: 600;">{{ sp.common_name or '—' }}</a></td>
+        <td style="color: #a0aab0;"><em>{{ sp.scientific_name }}</em></td>
+        <td class="mono">
+          {% if sp.span_min_mm and sp.span_max_mm %}
+            {{ sp.span_min_mm|int }}–{{ sp.span_max_mm|int }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+        <td class="mono">
+          {% if sp.dry_mass_mg %}
+            {{ sp.dry_mass_mg|round(1) }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 <div class="pagination">

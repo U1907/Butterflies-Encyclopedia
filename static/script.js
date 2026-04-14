@@ -22,9 +22,9 @@
           if (!data.length) { dropdown.classList.remove("open"); return; }
           dropdown.innerHTML = data.map(sp => `
             <a href="/species/${sp.id}" class="search-item">
-              <span>🦋</span>
-              <div>
-                <div>${highlight(sp.common_name || sp.scientific_name, q)}</div>
+              <span class="search-item-icon">🦋</span>
+              <div class="search-item-text">
+                <div class="search-item-name">${highlight(sp.common_name || sp.scientific_name, q)}</div>
                 <div class="sci">${sp.scientific_name}</div>
               </div>
               <span class="status-badge status-${sanitizeStatus(sp.status_code)}">${sp.status_code}</span>

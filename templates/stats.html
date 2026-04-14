@@ -16,8 +16,10 @@
   <!-- STATUS PIE -->
   <div class="chart-panel wide">
     <h2 class="panel-title">Conservation Status Distribution</h2>
-    <div class="chart-wrap">
-      <canvas id="statusChart"></canvas>
+    <div class="chart-wrap" style="display: flex; justify-content: center;">
+      <div style="position: relative; height: 280px; width: 100%; max-width: 750px;">
+        <canvas id="statusChart"></canvas>
+      </div>
     </div>
   </div>
 
@@ -123,7 +125,20 @@ new Chart(document.getElementById('statusChart'), {
       borderColor: '#0e1c14', borderWidth: 2
     }]
   },
-  options: { plugins: { legend: { labels: { color: CREAM, font: { family: 'Cormorant Garamond', size: 13 } } } } }
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          color: CREAM,
+          font: { family: 'Cormorant Garamond', size: 13 },
+          padding: 15
+        }
+      }
+    }
+  }
 });
 
 // FAMILY BAR

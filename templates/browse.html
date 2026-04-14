@@ -78,7 +78,6 @@
   <table class="data-table">
     <thead>
       <tr>
-        <th>Family</th>
         <th>Status</th>
         <th>Common Name</th>
         <th>Scientific Name</th>
@@ -89,7 +88,6 @@
     <tbody>
       {% for sp in species %}
       <tr>
-        <td><a href="/family/{{ sp.family }}" class="inline-link">{{ sp.family }}</a></td>
         <td><span class="status-badge status-{{ sp.status_code | replace(' ', '-') | replace('(', '') | replace(')', '') }}">{{ sp.status_code }}</span></td>
         <td><a href="/species/{{ sp.id }}" class="inline-link" style="font-weight: 600;">{{ sp.common_name or '—' }}</a></td>
         <td style="color: #a0aab0;"><em>{{ sp.scientific_name }}</em></td>
